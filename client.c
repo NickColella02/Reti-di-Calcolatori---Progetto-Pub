@@ -1,18 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <arpa/inet.h>
+#include "pub_utils.h"
 #include "socket_utils.h"
-
-#define PUB_IP "127.0.0.1"
-#define CAMERIERE_PORT 8888
-
-// Funzione per verificare se la stringa è un numero compreso tra min e max
-int is_valid_number(const char *str, int min, int max) {
-    int num = atoi(str);
-    return num >= min && num <= max;
-}
 
 int main() {
     int sock = create_socket(); // Creazione del socket del client
@@ -29,28 +16,24 @@ int main() {
     }
 
     printf("Benvenuto al pub!\n\n");
+    sleep(2);
+
+    char message[MESSAGE_SIZE]; // Variabile per inviare e ricevere messaggi
 
     // Chiedo al cameriere se c'è un tavolo disponibile
-    char *message = malloc(1024 * sizeof(char));
     strcpy(message, "C'è un tavolo disponibile?");
     send(sock, message, strlen(message), 0);
 
+    // Pulizia della variabile message prima di leggere la risposta del cameriere
+    memset(message, 0, MESSAGE_SIZE);
+
     // Leggo la risposta del cameriere
-    char response[1024];
-    ssize_t bytes_received = recv(sock, response, sizeof(response), 0);
-    if (bytes_received == -1) {
-        perror("recv");
-        free(message);
-        close(sock);
-        exit(EXIT_FAILURE);
-    }
-    response[bytes_received] = '\0';
-    printf("%s\n", response);
+    receive_message(sock, message, MESSAGE_SIZE);
+    printf("%s\n", message);
 
     // Se non ci sono tavoli disponibili...
-    if (strcmp(response, "Mi dispiace, non ci sono tavoli disponibili.") == 0) {
+    if (strcmp(message, "Mi dispiace, non ci sono tavoli disponibili.") == 0) {
         printf("Riprova più tardi.\n");
-        free(message);
         close(sock);
         exit(EXIT_SUCCESS);
     }
@@ -58,8 +41,8 @@ int main() {
     // Se, invece, ci sono tavoli disponibili, procedi con l'ordinazione e consegnala al cameriere
     printf("Inserisci il numero della portata desiderata (da 1 a 12) e conferma con INVIO. Per terminare, digita 'exit'.\n");
 
-    char order[1024] = "";
-    char input[1024];
+    char order[MESSAGE_SIZE] = "";
+    char input[MESSAGE_SIZE];
     do {
         printf("Portata: ");
         fgets(input, sizeof(input), stdin);
@@ -85,23 +68,20 @@ int main() {
     send(sock, order, strlen(order), 0);
     printf("Hai consegnato il tuo ordine al cameriere, ora attendi che il pub lo prepari.\n");
 
-    // Riceve l'ordine dal cameriere
-    char ordine_servito[1024];
-    ssize_t bytes_received2 = recv(sock, ordine_servito, sizeof(ordine_servito), 0);
-    if (bytes_received2 == -1) {
-        perror("recv");
-        free(message);
-        close(sock);
-        exit(EXIT_FAILURE);
-    }
-    ordine_servito[bytes_received2] = '\0';
-    printf("Il cameriere ti ha appena servito ciò che hai ordinato, buon appetito!\n");
+    // Pulizia della variabile message prima di leggere l'ordine servito dal cameriere
+    memset(message, 0, MESSAGE_SIZE);
 
+    // Riceve l'ordine dal cameriere
+    receive_message(sock, message, MESSAGE_SIZE);
+    printf("Il cameriere ti ha appena servito ciò che hai ordinato e stai mangiando...\n");
+    sleep(3);
+
+    printf("Hai finito e stai uscendo dal pub.\n");
+    sleep(2);
     // Comunica al cameriere che hai finito di consumare e lascia il pub
     strcpy(message, "exit");
     send(sock, message, strlen(message), 0);
 
-    free(message);
     close(sock);
     return 0;
 }

@@ -75,3 +75,14 @@ int connect_to_address(const char *ip, int port) {
 
     return sock;
 }
+
+// Funzione per ricevere i messaggi dal socket con gestione degli errori
+void receive_message(int sock, char *message, size_t message_size) {
+    ssize_t bytes_received = recv(sock, message, message_size, 0);
+    if (bytes_received == -1) {
+        perror("recv");
+        close(sock);
+        exit(EXIT_FAILURE);
+    }
+    message[bytes_received] = '\0';
+}

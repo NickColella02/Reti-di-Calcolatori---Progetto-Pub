@@ -5,6 +5,9 @@
         "unistd.h": "c",
         "stdio.h": "c",
         "stdbool.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "socket_utils.h": "c",
+        "pub_utils.h": "c",
+        "string.h": "c"
     }
 }
