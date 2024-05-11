@@ -6,6 +6,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include "pub_utils.h"
+#include "socket_utils.h"
 
 #define PUB_IP "127.0.0.1"
 #define PUB_PORT 8889
@@ -49,42 +50,17 @@ int main() {
         shared_data->tavoli_occupati[i] = 0; // 0 indica che il tavolo è libero
     }
 
-    int server_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_sock == -1) {
-        perror("socket");
-        exit(EXIT_FAILURE);
-    }
-
-    int enable = 1;
-    if (setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
-        perror("setsockopt(SO_REUSEADDR) failed");
-        exit(EXIT_FAILURE);
-    }
-
-    struct sockaddr_in server_addr, client_addr;
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(PUB_PORT);
-
-    if (bind(server_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
-        perror("bind");
-        exit(EXIT_FAILURE);
-    }
-
-    if (listen(server_sock, 5) == -1) {
-        perror("listen");
-        exit(EXIT_FAILURE);
-    }
+    // Creazione del socket del server
+    int server_sock = create_socket();
+    set_socket_option(server_sock);
+    bind_socket(server_sock, PUB_IP, PUB_PORT);
+    listen_socket(server_sock);
 
     printf("Il pub è operativo...\n\n");
 
     while (1) {
-        int client_sock;
-        int client_len = sizeof(client_addr);
-        if ((client_sock = accept(server_sock, (struct sockaddr *)&client_addr, (socklen_t *)&client_len)) == -1) {
-            perror("accept");
-            continue;
-        }
+        struct sockaddr_in client_addr;
+        int client_sock = accept_connection(server_sock, &client_addr);
 
         // Fork per gestire la comunicazione con il client
         pid_t pid = fork();

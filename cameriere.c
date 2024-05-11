@@ -3,48 +3,24 @@
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include "socket_utils.h"
 
 #define PUB_IP "127.0.0.1"
 #define PUB_PORT 8889
 #define CAMERIERE_PORT 8888
 
 int main() {
-    int server_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_sock == -1) {
-        perror("Errore nella creazione del socket");
-        exit(EXIT_FAILURE);
-    }
-
-    int enable = 1;
-    if (setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
-        perror("Errore nel settaggio dell'opzione del socket");
-        exit(EXIT_FAILURE);
-    }
-
-    struct sockaddr_in server_addr, client_addr;
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(CAMERIERE_PORT);
-
-    if (bind(server_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
-        perror("Errore durante il bind");
-        exit(EXIT_FAILURE);
-    }
-
-    if (listen(server_sock, 5) == -1) {
-        perror("Errore durante l'ascolto");
-        exit(EXIT_FAILURE);
-    }
+    // Creazione del socket del server
+    int server_sock = create_socket();
+    set_socket_option(server_sock);
+    bind_socket(server_sock, PUB_IP, CAMERIERE_PORT);
+    listen_socket(server_sock);
 
     printf("Il cameriere è operativo...\n\n");
 
     while (1) {
-        int client_sock;
-        int client_len = sizeof(client_addr);
-        if ((client_sock = accept(server_sock, (struct sockaddr *)&client_addr, (socklen_t *)&client_len)) == -1) {
-            perror("Errore durante l'accettazione");
-            continue;
-        }
+        struct sockaddr_in client_addr;
+        int client_sock = accept_connection(server_sock, &client_addr);
 
         // Fork per gestire in modo concorrente i client
         pid_t pid = fork();
@@ -70,24 +46,7 @@ int main() {
             printf("E' arrivato un client che chiede: %s\n", request);
 
             // Inoltro la richiesta al pub
-            int pub_sock = socket(AF_INET, SOCK_STREAM, 0);
-            if (pub_sock == -1) {
-                perror("socket");
-                exit(EXIT_FAILURE);
-            }
-
-            struct sockaddr_in pub_addr;
-            pub_addr.sin_family = AF_INET;
-            pub_addr.sin_port = htons(PUB_PORT);
-            inet_pton(AF_INET, PUB_IP, &pub_addr.sin_addr);
-
-            if (connect(pub_sock, (struct sockaddr *)&pub_addr, sizeof(pub_addr)) == -1) {
-                perror("connect");
-                close(client_sock);
-                close(pub_sock);
-                exit(EXIT_FAILURE);
-            }
-
+            int pub_sock = connect_to_address(PUB_IP, PUB_PORT);
             send(pub_sock, request, strlen(request), 0);
 
             char response[1024];

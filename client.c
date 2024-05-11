@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include "socket_utils.h"
 
 #define PUB_IP "127.0.0.1"
 #define CAMERIERE_PORT 8888
@@ -14,17 +15,8 @@ int is_valid_number(const char *str, int min, int max) {
 }
 
 int main() {
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == -1) {
-        perror("Errore nella creazione del socket");
-        exit(EXIT_FAILURE);
-    }
-
-    int enable = 1;
-    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
-        perror("Errore nel settaggio dell'opzione del socket");
-        exit(EXIT_FAILURE);
-    }
+    int sock = create_socket(); // Creazione del socket del client
+    set_socket_option(sock);    // Impostazione delle opzioni del socket
 
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
