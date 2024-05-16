@@ -9,5 +9,9 @@
         "socket_utils.h": "c",
         "pub_utils.h": "c",
         "string.h": "c"
-    }
+    },
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/include",
+        "${workspaceFolder}/src"
+    ]
 }

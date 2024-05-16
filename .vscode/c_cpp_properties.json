@@ -4,7 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/mnt/c/Users/nicol/OneDrive/Desktop/Reti-di-Calcolatori---Progetto-Pub"
+                "/mnt/c/Users/nicol/OneDrive/Desktop/Reti-di-Calcolatori---Progetto-Pub",
+                "${workspaceFolder}/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

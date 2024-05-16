@@ -52,12 +52,12 @@ int main() {
     // Ciclo per acquisire l'ordine dall'utente
     do {
         printf("Portata: ");
-        fgets(input, sizeof(input), stdin); // Ottengo l'input dell'utente
+        fgets(input, sizeof(input), stdin); // Ottengo l'input del cliente
         input[strcspn(input, "\n")] = '\0'; // Rimuovo il carattere di newline dall'input
         
-        // Controlla se l'utente vuole concludere l'ordine
+        // Controlla se il cliente vuole concludere l'ordine
         if (strcmp(input, "exit") == 0) {
-            // Se l'utente tenta di uscire senza aver ordinato nulla, chiedi di ordinare almeno una portata
+            // Se il cliente tenta di uscire senza aver ordinato nulla, chiedi di ordinare almeno una portata
             if (strlen(order) == 0) {
                 printf("Devi ordinare almeno una portata.\n");
                 continue; // Torna all'inizio del ciclo per richiedere la portata

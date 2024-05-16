@@ -87,7 +87,7 @@ int main() {
                 printf("%s", message);
                 fflush(stdout);
                 
-                // Invia la risposta al cameriere
+                // Invio la risposta al cameriere
                 send(client_sock, message, strlen(message), 0);
                 
                 memset(message, 0, MESSAGE_SIZE);
@@ -103,7 +103,7 @@ int main() {
                 
                 memset(message, 0, MESSAGE_SIZE);
                 
-                // Dopo la preparazione dell'ordine, il pub lo avvisa il cameriere che è pronto
+                // Dopo la preparazione dell'ordine, il pub avvisa il cameriere che è pronto
                 snprintf(message, sizeof(message), "Ordine per il tavolo %d pronto al servizio.", tavolo_assegnato);
                 send(client_sock, message, strlen(message), 0);
                 
